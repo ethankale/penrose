@@ -1,0 +1,72 @@
+<html>
+
+<head>
+
+</head>
+
+<body>
+
+  <canvas id="tiles" height="500" width="600">
+  
+  </canvas>
+
+  
+  <script>
+  
+    var PHI = 0.5 + Math.sqrt(5 / 4),
+    canvas = document.getElementById("tiles").getContext("2d");
+    
+    // Sine and cosine functions in javascript accept radians rather than degrees.
+    function degToRad(degrees) {
+        return degrees * (Math.PI / 180)
+    }
+    
+    function drawShape(shape, fillCol, strokeCol) {
+        // Takes a pre-defined set of coordinates (format [[x,y],[x,y]...] - unclosed), and draws it
+        
+        // Default fill color to red
+        fillCol = typeof fillCol !== 'undefined' ? fillCol : '#f00';
+        strokeCol = typeof strokeCol !== 'undefined' ? strokeCol : 'blue';
+        
+        canvas.beginPath();
+        canvas.moveTo(shape[0][0], shape[0][1])
+        
+        for (i in shape) {
+            canvas.lineTo(shape[i][0], shape[i][1]);
+        }
+        canvas.closePath();
+        canvas.fillStyle = fillCol;
+        canvas.fill();
+        canvas.strokeStyle = strokeCol;
+        canvas.stroke();
+    }
+    
+    var startX = 200
+    var startY = 200
+    
+    var len = 50
+    
+    dart = [
+                [startX, startY],
+                [startX + len * Math.cos(degToRad(36)), startY + len * Math.sin(degToRad(36))],
+                [startX + len, startY],
+                [startX + len * Math.cos(degToRad(36)), startY - len * Math.sin(degToRad(36))]
+            ];
+  
+    kite = [
+            [startX, startY],
+            [startX + len * Math.cos(degToRad(36)), startY - len * Math.sin(degToRad(36))],
+            [startX, startY - 2 * (len * Math.sin(degToRad(36)))],
+            [(startX + len * Math.cos(degToRad(36))) - ((1/PHI) * len), startY - len * Math.sin(degToRad(36))],
+        ];
+    
+    drawShape(dart);
+    drawShape(kite);
+    
+
+  
+  </script>
+  
+</body>
+
+</html>
