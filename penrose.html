@@ -9,7 +9,6 @@
   <canvas id="tiles" height="500" width="600">
   
   </canvas>
-
   
   <script>
     var PHI = 0.5 + Math.sqrt(5 / 4);
@@ -37,8 +36,8 @@
         canvas.translate(x, y);
         canvas.rotate(degToRad(deg));
         
+        // Draw the outlines & polygons
         canvas.beginPath();
-
         
         if (shape == "dart") {
             canvas.lineTo(len * Math.cos(degToRad(36)), len * Math.sin(degToRad(36)));
@@ -58,16 +57,32 @@
         canvas.strokeStyle = strokeCol;
         canvas.stroke();
         
+        // Draw the curvy lines
+        
+        if (shape == "dart") {
+            canvas.beginPath();
+            canvas.strokeStyle = "yellow";
+            canvas.arc(0, 0, len/PHI, -degToRad(36), degToRad(36));
+            canvas.stroke();
+            
+            canvas.beginPath();
+            canvas.strokeStyle = "purple";
+            canvas.arc(len, 0, len - (len/PHI), degToRad(108), -degToRad(108));
+            canvas.stroke();
+            
+        }
+        
+        
         canvas.restore();
     }
     
     
     
     
-    drawShape("dart", x = 200, y = 200, deg = 0,  len = 50);
-    drawShape("kite", x = 200, y = 200, deg = 0,  len = 50);
-    drawShape("dart", x = 200, y = 200, deg = 72, len = 50);
-    drawShape("kite", x = 200 + len, y = 200, deg = -36,  len = 50);
+    drawShape("dart", x = 200, y = 200, deg = 0,  len = 50, fillCol = "lightgray");
+    drawShape("kite", x = 200, y = 200, deg = 0,  len = 50, fillCol = "lightgray");
+    drawShape("dart", x = 200, y = 200, deg = 72, len = 50, fillCol = "lightgray");
+    drawShape("kite", x = 200 + len, y = 200, deg = -36,  len = 50, fillCol = "lightgray");
     
 
   
