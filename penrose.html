@@ -10,9 +10,19 @@
   
   </canvas>
   
-  <script>
+  <script type="text/javascript">
     var PHI = 0.5 + Math.sqrt(5 / 4);
     var canvas = document.getElementById("tiles").getContext("2d");
+    
+    var len    = 100
+    var startX = 200
+    var startY = 200
+    
+    // There are ten legitimate angles for shapes - various multiples of 36
+    var angles = [];
+    for (var i=0; i<10; i++) {
+        angles[i] = i * 36;
+    }
     
     // Sine and cosine functions in javascript accept radians rather than degrees.
     function degToRad(degrees) {
@@ -59,30 +69,50 @@
         
         // Draw the curvy lines
         
+        // Calculating lengths is confusing.  Here's a cheat sheet:
+        //
+        // len = z(1 + PHI)
+        // 
+        // Solving for x will make calculating lengths a lot easier (especially for the radius of the arcs)
+        // The variable z is the radius of the 144 degree arc for the dart, and the 216 degree arc for the kite
+        // Basically, sub for the radii of length 1 in the diagrams here: http://math.uchicago.edu/~mann/penrose.pdf
+        // Therefore:
+        z = 1 / ((1 + PHI) / len)
+        
         if (shape == "dart") {
             canvas.beginPath();
             canvas.strokeStyle = "yellow";
-            canvas.arc(0, 0, len/PHI, -degToRad(36), degToRad(36));
+            canvas.arc(0, 0, z * PHI, -degToRad(36), degToRad(36));
             canvas.stroke();
             
             canvas.beginPath();
             canvas.strokeStyle = "purple";
-            canvas.arc(len, 0, len - (len/PHI), degToRad(108), -degToRad(108));
+            canvas.arc(len, 0, z, degToRad(108), -degToRad(108));
             canvas.stroke();
             
         }
         
-        
+        if (shape == "kite") {
+            canvas.beginPath();
+            canvas.strokeStyle = "purple";
+            canvas.arc((len * Math.cos(degToRad(36))) - ((1/PHI) * len), 0 - len * Math.sin(degToRad(36)), z / PHI, -degToRad(108), degToRad(108));
+            canvas.stroke();
+            
+            canvas.beginPath();
+            canvas.strokeStyle = "yellow";
+            canvas.arc(len * Math.cos(degToRad(36)), 0 - len * Math.sin(degToRad(36)), z, degToRad(144), -degToRad(144));
+            canvas.stroke();
+            
+        }
+
         canvas.restore();
     }
     
-    
-    
-    
-    drawShape("dart", x = 200, y = 200, deg = 0,  len = 50, fillCol = "lightgray");
-    drawShape("kite", x = 200, y = 200, deg = 0,  len = 50, fillCol = "lightgray");
-    drawShape("dart", x = 200, y = 200, deg = 72, len = 50, fillCol = "lightgray");
-    drawShape("kite", x = 200 + len, y = 200, deg = -36,  len = 50, fillCol = "lightgray");
+    theHeight = startY - (2 * (len * Math.sin(degToRad(36))))
+    drawShape("dart", x = startX, y = startY, deg = angles[0],  len = len, fillCol = "lightgray");
+    drawShape("kite", x = startX, y = startY, deg = angles[0],  len = len, fillCol = "lightgray");
+    drawShape("dart", x = startX, y = startY, deg = angles[2], len = len, fillCol = "lightgray");
+    drawShape("kite", x = startX, y = theHeight, deg = angles[2],  len = len, fillCol = "lightgray");
     
 
   
