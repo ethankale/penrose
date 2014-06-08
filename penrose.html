@@ -29,6 +29,18 @@
         return degrees * (Math.PI / 180)
     }
     
+    // We need to make a tile class, which can be either a kite or a dart
+    function Tile(shape, x, y, deg, len) {
+        // Either "kite" or "dart"
+        this.shape = shape;
+        // Starting point - the "point" of the dart, or the bottom point of a kite facing right
+        this.x = x;
+        this.y = y;
+        // Degrees = angle of rotation; len = length of the longest side
+        this.deg = deg;
+        this.len = len;
+    }
+    
     function drawShape(shape, x, y, deg, len, fillCol, strokeCol) {
         // Template for drawing kites & darts.  Specify the x,y coords of the endpoint
         //  and the rotation; optionally the length of a side and fill & stroke color.
@@ -42,28 +54,39 @@
         fillCol = typeof fillCol !== 'undefined' ? fillCol : '#f00';
         strokeCol = typeof strokeCol !== 'undefined' ? strokeCol : 'blue';
         
-        angle     = deg + 36
-        antiAngle = deg - 36
-        angle90   = deg + 90
-        angle108  = deg + 108
-        angle144  = deg + 144
+        angle     = deg + 36;
+        antiAngle = deg - 36;
+        angle90   = deg + 90;
+        angle108  = deg + 108;
+        angle144  = deg + 144;
         
         canvas.moveTo(x, y);
         canvas.beginPath();
         
+        var x1, y1, x2, y2, x3, y3;
+        
         if (shape == "dart") {
-            canvas.lineTo(x + (len * Math.cos(degToRad(angle))),     y + (len * Math.sin(degToRad(angle))));
-            canvas.lineTo(x + (len * Math.cos(degToRad(deg))),       y + (len * Math.sin(degToRad(deg))));
-            canvas.lineTo(x + (len * Math.cos(degToRad(antiAngle))), y + (len * Math.sin(degToRad(antiAngle))));
-            canvas.lineTo(x, y)
+            
+            x1 = x + (len * Math.cos(degToRad(antiAngle)));
+            y1 = y + (len * Math.sin(degToRad(antiAngle)))
+            x2 = x + (len * Math.cos(degToRad(deg)))
+            y2 = y + (len * Math.sin(degToRad(deg)))
+            x3 = x + (len * Math.cos(degToRad(angle)))
+            y3 = y + (len * Math.sin(degToRad(angle)))
+            
+            canvas.lineTo(x1, y1);
+            canvas.lineTo(x2, y2);
+            canvas.lineTo(x3, y3);
+            canvas.lineTo(x, y);
+            
         } else if (shape == "kite") {
-            var x1, y1, x2, y2, x3, y3;
+
             x1 = x + (len * Math.cos(degToRad(angle)));
-            y1 = y - (len * Math.sin(degToRad(angle)));
+            y1 = y + (len * Math.sin(degToRad(angle)));
             x2 = x1 - (len * Math.sin(degToRad(54 + deg)));
-            y2 = y1 - (len * Math.cos(degToRad(54 + deg)));
+            y2 = y1 + (len * Math.cos(degToRad(54 + deg)));
             x3 = x2 + (shortLen * Math.sin(degToRad(18 + deg)));
-            y3 = y2 + (shortLen * Math.cos(degToRad(18 + deg)));
+            y3 = y2 - (shortLen * Math.cos(degToRad(18 + deg)));
             
             canvas.lineTo(x1, y1);
             canvas.lineTo(x2, y2);
@@ -92,12 +115,12 @@
         if (shape == "dart") {
             canvas.beginPath();
             canvas.strokeStyle = "yellow";
-            canvas.arc(x, y, z * PHI, -degToRad(angle), degToRad(angle));
+            canvas.arc(x, y, z * PHI, degToRad(deg - 36), degToRad(deg + 36));
             canvas.stroke();
             
             canvas.beginPath();
             canvas.strokeStyle = "purple";
-            canvas.arc(x + len, y, z, degToRad(angle108), -degToRad(angle108));
+            canvas.arc(x2, y2, z, degToRad(deg + 108), degToRad(deg - 108));
             canvas.stroke();
             
         }
@@ -105,20 +128,12 @@
         if (shape == "kite") {
             canvas.beginPath();
             canvas.strokeStyle = "purple";
-            canvas.arc(x + ((len * Math.cos(degToRad(angle))) - ((1/PHI) * len)), 
-                       y - (len * Math.sin(degToRad(angle))), 
-                       z / PHI, -degToRad(angle108), 
-                       degToRad(angle108)
-            );
+            canvas.arc(x3, y3, z / PHI, degToRad(deg - 108), degToRad(deg + 108));
             canvas.stroke();
             
             canvas.beginPath();
             canvas.strokeStyle = "yellow";
-            canvas.arc(x + (len * Math.cos(degToRad(angle))), 
-                       y - (len * Math.sin(degToRad(angle)), 
-                       z, 
-                       degToRad(angle144), -degToRad(angle144))
-            );
+            canvas.arc(x1, y1, z, degToRad(deg + 144), degToRad(deg - 144));
             canvas.stroke();
             
         }
@@ -126,8 +141,8 @@
     }
     
     theHeight = startY - (2 * (len * Math.sin(degToRad(36))))
-    //drawShape("dart", x = startX, y = startY, deg = angles[0],  len = len, fillCol = "lightgray");
-    drawShape("kite", x = startX, y = startY, deg = angles[1],  len = len, fillCol = "lightgray");
+    drawShape("dart", x = startX, y = startY, deg = angles[2],  len = len, fillCol = "lightgray");
+    drawShape("kite", x = startX, y = startY, deg = angles[2],  len = len, fillCol = "lightgray");
     //drawShape("dart", x = startX, y = startY, deg = angles[2], len = len, fillCol = "lightgray");
     //drawShape("kite", x = startX, y = theHeight, deg = angles[2],  len = len, fillCol = "lightgray");
     
