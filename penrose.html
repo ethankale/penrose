@@ -11,6 +11,10 @@
   </canvas>
   
   <script type="text/javascript">
+    
+    ///////
+    // Global variables
+    ///////
     var PHI = 0.5 + Math.sqrt(5 / 4);
     var canvas = document.getElementById("tiles").getContext("2d");
     
@@ -18,81 +22,117 @@
     var startX = 200
     var startY = 200
     
-    // There are ten legitimate angles for shapes - various multiples of 36
-    var angles = [];
-    for (var i=0; i<10; i++) {
-        angles[i] = i * 36;
-    }
+    //////
+    // Global functions
+    /////
     
     // Sine and cosine functions in javascript accept radians rather than degrees.
     function degToRad(degrees) {
         return degrees * (Math.PI / 180)
     }
     
+    //////
+    // Classes
+    //////
+    
     // We need to make a tile class, which can be either a kite or a dart
     function Tile(shape, x, y, deg, len) {
         // Either "kite" or "dart"
         this.shape = shape;
         // Starting point - the "point" of the dart, or the bottom point of a kite facing right
-        this.x = x;
-        this.y = y;
-        // Degrees = angle of rotation; len = length of the longest side
+        this.x0 = x;
+        this.y0 = y;
+        // deg = angle of rotation in degrees 
         this.deg = deg;
+        // len = length of the longest side
         this.len = len;
-    }
-    
-    function drawShape(shape, x, y, deg, len, fillCol, strokeCol) {
-        // Template for drawing kites & darts.  Specify the x,y coords of the endpoint
-        //  and the rotation; optionally the length of a side and fill & stroke color.
+        // So we're not relying on a global variable of PHI
+        var PHI = 0.5 + Math.sqrt(5 / 4);
         
-        // Default values
-        x = typeof x !== 'undefined' ? x : 0;
-        y = typeof y !== 'undefined' ? y : 0;
-        deg = typeof deg !== 'undefined' ? deg : 0;
-        len = typeof len !== 'undefined' ? len : 50;
-        shortLen = (len / PHI)
-        fillCol = typeof fillCol !== 'undefined' ? fillCol : '#f00';
-        strokeCol = typeof strokeCol !== 'undefined' ? strokeCol : 'blue';
+        var shortLen = (len / PHI);
         
-        angle     = deg + 36;
-        antiAngle = deg - 36;
-        angle90   = deg + 90;
-        angle108  = deg + 108;
-        angle144  = deg + 144;
+        //Calculate the coordinates for each point
+        this.x1 = 0; 
+        this.y1 = 0; 
+        this.x2 = 0;
+        this.y2 = 0;
+        this.x3 = 0;
+        this.y3 = 0; 
         
-        canvas.moveTo(x, y);
-        canvas.beginPath();
-        
-        var x1, y1, x2, y2, x3, y3;
+        var angle     = deg + 36;
+        var antiAngle = deg - 36;
         
         if (shape == "dart") {
             
-            x1 = x + (len * Math.cos(degToRad(antiAngle)));
-            y1 = y + (len * Math.sin(degToRad(antiAngle)))
-            x2 = x + (len * Math.cos(degToRad(deg)))
-            y2 = y + (len * Math.sin(degToRad(deg)))
-            x3 = x + (len * Math.cos(degToRad(angle)))
-            y3 = y + (len * Math.sin(degToRad(angle)))
+            this.x1 = x + (len * Math.cos(degToRad(antiAngle)));
+            this.y1 = y + (len * Math.sin(degToRad(antiAngle)))
+            this.x2 = x + (len * Math.cos(degToRad(deg)))
+            this.y2 = y + (len * Math.sin(degToRad(deg)))
+            this.x3 = x + (len * Math.cos(degToRad(angle)))
+            this.y3 = y + (len * Math.sin(degToRad(angle)))
             
-            canvas.lineTo(x1, y1);
-            canvas.lineTo(x2, y2);
-            canvas.lineTo(x3, y3);
-            canvas.lineTo(x, y);
+            // Potential neighbors that fit the tile setting rules.
+            this.neighbors = [
+                ["kite", x, y, 0, len],
+                ["kite", x, y - ((len * Math.sin(degToRad(angle))) * 2), 0, len],
+                ["kite", this.x2, y, angle, len]
+            ]
             
         } else if (shape == "kite") {
 
-            x1 = x + (len * Math.cos(degToRad(angle)));
-            y1 = y + (len * Math.sin(degToRad(angle)));
-            x2 = x1 - (len * Math.sin(degToRad(54 + deg)));
-            y2 = y1 + (len * Math.cos(degToRad(54 + deg)));
-            x3 = x2 + (shortLen * Math.sin(degToRad(18 + deg)));
-            y3 = y2 - (shortLen * Math.cos(degToRad(18 + deg)));
+            this.x1 = x + (len * Math.cos(degToRad(angle)));
+            this.y1 = y + (len * Math.sin(degToRad(angle)));
+            this.x2 = this.x1 - (len * Math.sin(degToRad(54 + deg)));
+            this.y2 = this.y1 + (len * Math.cos(degToRad(54 + deg)));
+            this.x3 = this.x2 + (shortLen * Math.sin(degToRad(18 + deg)));
+            this.y3 = this.y2 - (shortLen * Math.cos(degToRad(18 + deg)));
             
-            canvas.lineTo(x1, y1);
-            canvas.lineTo(x2, y2);
-            canvas.lineTo(x3, y3);
-            canvas.lineTo(x, y)
+            // Potential neighbors that fit the tile setting rules.
+            this.neighbors = [
+                ["dart", x, y, 0, len]
+            ]
         }
+        
+    }
+    
+    //Possible neighboring tiles to this one; depends on the shape
+    /*Tile.prototype.neighbors = [];
+    
+    Tile.prototype.getNeighbors = function() {
+        return Tile.prototype.neighbors;
+    }
+    
+    Tile.prototype.addNeighbor = function(neighbor) {
+        Tile.prototype.neighbors;
+    } */
+    
+    //////
+    // Display functions
+    //////
+    
+    function drawShape(tile, fillCol, strokeCol) {
+        // Template for drawing kites & darts.  Specify the x,y coords of the endpoint
+        //  and the rotation; optionally the length of a side and fill & stroke color.
+        
+        x     = tile.x0;
+        y     = tile.y0;
+        deg   = tile.deg;
+        len   = tile.len;
+        shape = tile.shape;
+        
+        shortLen = (len / PHI)
+        
+        // Default values
+        fillCol = typeof fillCol !== 'undefined' ? fillCol : '#f00';
+        strokeCol = typeof strokeCol !== 'undefined' ? strokeCol : 'blue';
+        
+        canvas.moveTo(tile.x0, tile.y0);
+        canvas.beginPath();
+        
+        canvas.lineTo(tile.x1, tile.y1);
+        canvas.lineTo(tile.x2, tile.y2);
+        canvas.lineTo(tile.x3, tile.y3);
+        canvas.lineTo(tile.x0, tile.y0);
         
         canvas.closePath();
         canvas.fillStyle = fillCol;
@@ -115,12 +155,12 @@
         if (shape == "dart") {
             canvas.beginPath();
             canvas.strokeStyle = "yellow";
-            canvas.arc(x, y, z * PHI, degToRad(deg - 36), degToRad(deg + 36));
+            canvas.arc(tile.x0, tile.y0, z * PHI, degToRad(deg - 36), degToRad(deg + 36));
             canvas.stroke();
             
             canvas.beginPath();
             canvas.strokeStyle = "purple";
-            canvas.arc(x2, y2, z, degToRad(deg + 108), degToRad(deg - 108));
+            canvas.arc(tile.x2, tile.y2, z, degToRad(deg + 108), degToRad(deg - 108));
             canvas.stroke();
             
         }
@@ -128,21 +168,38 @@
         if (shape == "kite") {
             canvas.beginPath();
             canvas.strokeStyle = "purple";
-            canvas.arc(x3, y3, z / PHI, degToRad(deg - 108), degToRad(deg + 108));
+            canvas.arc(tile.x3, tile.y3, z / PHI, degToRad(deg - 108), degToRad(deg + 108));
             canvas.stroke();
             
             canvas.beginPath();
             canvas.strokeStyle = "yellow";
-            canvas.arc(x1, y1, z, degToRad(deg + 144), degToRad(deg - 144));
+            canvas.arc(tile.x1, tile.y1, z, degToRad(deg + 144), degToRad(deg - 144));
             canvas.stroke();
             
         }
-        //canvas.restore();
     }
     
+    //////
+    // Draw the tileset
+    //////
+    
     theHeight = startY - (2 * (len * Math.sin(degToRad(36))))
-    drawShape("dart", x = startX, y = startY, deg = angles[2],  len = len, fillCol = "lightgray");
-    drawShape("kite", x = startX, y = startY, deg = angles[2],  len = len, fillCol = "lightgray");
+    
+    var t1 = new Tile("dart", x = startX, y = startY, deg = 0,  len = len);
+    
+    var n1 = t1.neighbors[0];
+    var n2 = t1.neighbors[1];
+    var n3 = t1.neighbors[2];
+    
+    var t2 = new Tile(n1[0], n1[1], n1[2], n1[3], n1[4]);
+    var t3 = new Tile(n2[0], n2[1], n2[2], n2[3], n2[4]);
+    var t4 = new Tile(n3[0], n3[1], n3[2], n3[3], n3[4]);
+    
+    drawShape(t1, fillCol = "lightgray");
+    drawShape(t2, fillCol = "lightgray");
+    drawShape(t3, fillCol = "lightgray");
+    drawShape(t4, fillCol = "lightgray");
+    
     //drawShape("dart", x = startX, y = startY, deg = angles[2], len = len, fillCol = "lightgray");
     //drawShape("kite", x = startX, y = theHeight, deg = angles[2],  len = len, fillCol = "lightgray");
     
