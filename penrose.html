@@ -73,9 +73,14 @@
             
             // Potential neighbors that fit the tile setting rules.
             this.neighbors = [
-                ["kite", x, y, 0, len],
-                ["kite", x, y - ((len * Math.sin(degToRad(angle))) * 2), 0, len],
-                ["kite", this.x2, y, angle, len]
+                ["kite", x, y, deg, len],
+                ["kite", x, y - ((len * Math.sin(degToRad(angle))) * 2), deg, len],
+                ["kite", this.x2, y, angle, len],
+                ["kite", x + (len * Math.cos(degToRad(antiAngle - 36))), y + (len * Math.sin(degToRad(antiAngle - 36))), antiAngle, len],
+                ["dart", x, y, deg + 72, len],
+                ["dart", x, y, deg - 72, len],
+                ["dart", this.x3 + len, this.y3, deg - 144, len],
+                ["dart", this.x1 + len, this.y1, deg + 144, len]
             ]
             
         } else if (shape == "kite") {
@@ -89,7 +94,12 @@
             
             // Potential neighbors that fit the tile setting rules.
             this.neighbors = [
-                ["dart", x, y, 0, len]
+                ["dart", x, y, deg, len],
+                ["dart", this.x2, this.y2, deg, len],
+                ["dart", this.x3 - len, this.y3, deg - 36, len],
+                ["dart", this.x3 - len, this.y3, deg + 36, len],
+                ["kite", this.x2, this.y2, deg - 72, len],
+                ["kite", this.x1 + (len * Math.cos(degToRad(deg + 72))), this.y1 + (len * Math.sin(degToRad(deg - 72))), deg + 72, len]
             ]
         }
         
@@ -185,20 +195,23 @@
     
     theHeight = startY - (2 * (len * Math.sin(degToRad(36))))
     
-    var t1 = new Tile("dart", x = startX, y = startY, deg = 0,  len = len);
+    var t1 = new Tile("kite", x = startX, y = startY, deg = 0,  len = len);
     
-    var n1 = t1.neighbors[0];
-    var n2 = t1.neighbors[1];
-    var n3 = t1.neighbors[2];
+    var n1 = t1.neighbors[4];
+    var n2 = t1.neighbors[5];
+    //var n3 = t1.neighbors[7];
+    //var n4 = t1.neighbors[3];
     
     var t2 = new Tile(n1[0], n1[1], n1[2], n1[3], n1[4]);
     var t3 = new Tile(n2[0], n2[1], n2[2], n2[3], n2[4]);
-    var t4 = new Tile(n3[0], n3[1], n3[2], n3[3], n3[4]);
+    //var t4 = new Tile(n3[0], n3[1], n3[2], n3[3], n3[4]);
+    //var t5 = new Tile(n4[0], n4[1], n4[2], n4[3], n4[4]);
     
     drawShape(t1, fillCol = "lightgray");
     drawShape(t2, fillCol = "lightgray");
     drawShape(t3, fillCol = "lightgray");
-    drawShape(t4, fillCol = "lightgray");
+    //drawShape(t4, fillCol = "lightgray");
+    //drawShape(t5, fillCol = "lightgray");
     
     //drawShape("dart", x = startX, y = startY, deg = angles[2], len = len, fillCol = "lightgray");
     //drawShape("kite", x = startX, y = theHeight, deg = angles[2],  len = len, fillCol = "lightgray");
