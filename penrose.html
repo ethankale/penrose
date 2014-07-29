@@ -12,6 +12,12 @@
   
   <script type="text/javascript">
     
+    // Thanks to many cool sources on the web:
+    // http://en.wikipedia.org/wiki/Penrose_tiling
+    // http://math.uchicago.edu/~mann/penrose.pdf
+    // http://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
+    
+    
     ///////
     // Global variables
     ///////
@@ -105,16 +111,48 @@
         
     }
     
-    //Possible neighboring tiles to this one; depends on the shape
-    /*Tile.prototype.neighbors = [];
+    //////
+    // Collision Testing
+    //////
     
-    Tile.prototype.getNeighbors = function() {
-        return Tile.prototype.neighbors;
+    function counterClockwise (p1, p2, p3) {
+        return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p2[0] - p1[0]);
     }
     
-    Tile.prototype.addNeighbor = function(neighbor) {
-        Tile.prototype.neighbors;
-    } */
+    function tileOverlap(tile0, tile1) {
+        var pointsx = ["x0", "x1", "x2", "x3", "x0"];
+        var pointsy = ["y0", "y1", "y2", "y3", "y0"];
+        
+        var collision = false;
+        
+        findLineIntersections:
+        for (var i in pointsx) {
+            for (var j in pointsy) {
+                
+                var k = Number(i);
+                var l = Number(j);
+                
+                // Line 1, from the first tile
+                var p1 = [tile0[pointsx[k]], tile0[pointsy[k]]];
+                var p2 = [tile0[pointsx[k+1]], tile0[pointsy[k+1]]];
+                
+                // Line 2, from the second tile
+                var p3 = [tile1[pointsx[l]], tile1[pointsy[l]]];
+                var p4 = [tile1[pointsx[l+1]], tile1[pointsy[l+1]]];
+                
+                // Determine if the lines intersect by testing spin direction between points
+                collision = (counterClockwise(p1, p3, p4) != counterClockwise(p2, p3, p4)) && 
+                    (counterClockwise(p1, p2, p3) != counterClockwise(p1, p2, p4));
+                
+                console.log(k+l);
+                console.log("[" + p1 + "; " + p2 + "] and [" + p3 + "; " + p4 + "]");
+                
+                if (collision == true) {break findLineIntersections};
+            }
+        }
+        
+        return collision;
+    }
     
     //////
     // Display functions
