@@ -16,15 +16,18 @@
     // http://en.wikipedia.org/wiki/Penrose_tiling
     // http://math.uchicago.edu/~mann/penrose.pdf
     // http://stackoverflow.com/questions/9043805/test-if-two-lines-intersect-javascript-function
+    // http://stackoverflow.com/questions/3115982/how-to-check-javascript-array-equals
     
     
     ///////
     // Global variables
     ///////
+    var debug = true;
+    
     var PHI = 0.5 + Math.sqrt(5 / 4);
     var canvas = document.getElementById("tiles").getContext("2d");
     
-    var len    = 100
+    var len    = 75
     var startX = 200
     var startY = 200
     
@@ -41,17 +44,24 @@
     // Classes
     //////
     
-    // We need to make a tile class, which can be either a kite or a dart
-    function Tile(shape, x, y, deg, len) {
-        // Either "kite" or "dart"
-        this.shape = shape;
-        // Starting point - the "point" of the dart, or the bottom point of a kite facing right
-        this.x0 = x;
-        this.y0 = y;
+    // We need to make a tile class, which can be either a dart or a kite
+    // tileProperties = [shape, start x, start y, degrees rotation, length of side]
+    
+    //function Tile(shape, x, y, deg, len) {
+    function Tile(tileProperties) {
+        // Either "dart" or "kite"
+        this.shape = tileProperties[0];
+        
+        // Starting point - the "point" of the kite, or the bottom point of a dart facing right
+        this.x0 = tileProperties[1];
+        this.y0 = tileProperties[2];
+        
         // deg = angle of rotation in degrees 
-        this.deg = deg;
+        this.deg = tileProperties[3];
+        
         // len = length of the longest side
-        this.len = len;
+        this.len = tileProperties[4];
+        
         // So we're not relying on a global variable of PHI
         var PHI = 0.5 + Math.sqrt(5 / 4);
         
@@ -65,47 +75,50 @@
         this.x3 = 0;
         this.y3 = 0; 
         
-        var angle     = deg + 36;
-        var antiAngle = deg - 36;
+        var angle     = this.deg + 36;
+        var antiAngle = this.deg - 36;
         
-        if (shape == "dart") {
+        if (this.shape == "kite") {
             
-            this.x1 = x + (len * Math.cos(degToRad(antiAngle)));
-            this.y1 = y + (len * Math.sin(degToRad(antiAngle)))
-            this.x2 = x + (len * Math.cos(degToRad(deg)))
-            this.y2 = y + (len * Math.sin(degToRad(deg)))
-            this.x3 = x + (len * Math.cos(degToRad(angle)))
-            this.y3 = y + (len * Math.sin(degToRad(angle)))
+            this.x1 = this.x0 + (this.len * Math.cos(degToRad(antiAngle)));
+            this.y1 = this.y0 + (this.len * Math.sin(degToRad(antiAngle)));
+            this.x2 = this.x0 + (this.len * Math.cos(degToRad(this.deg)));
+            this.y2 = this.y0 + (this.len * Math.sin(degToRad(this.deg)));
+            this.x3 = this.x0 + (this.len * Math.cos(degToRad(angle)));
+            this.y3 = this.y0 + (this.len * Math.sin(degToRad(angle)));
             
             // Potential neighbors that fit the tile setting rules.
             this.neighbors = [
-                ["kite", x, y, deg, len],
-                ["kite", x, y - ((len * Math.sin(degToRad(angle))) * 2), deg, len],
-                ["kite", this.x2, y, angle, len],
-                ["kite", x + (len * Math.cos(degToRad(antiAngle - 36))), y + (len * Math.sin(degToRad(antiAngle - 36))), antiAngle, len],
-                ["dart", x, y, deg + 72, len],
-                ["dart", x, y, deg - 72, len],
-                ["dart", this.x3 + len, this.y3, deg - 144, len],
-                ["dart", this.x1 + len, this.y1, deg + 144, len]
+                ["dart", this.x0, this.y0, this.deg, this.len],
+                ["dart", this.x1 - (this.len * Math.cos(degToRad(this.deg + 36))), this.y1 - (this.len * Math.sin(degToRad(this.deg + 36))), this.deg, this.len],
+                ["dart", this.x2, this.y2, angle, this.len],
+                ["dart", this.x0 + (this.len * Math.cos(degToRad(antiAngle - 36))), this.y0 + (this.len * Math.sin(degToRad(antiAngle - 36))), antiAngle, this.len],
+                ["kite", this.x0, this.y0, this.deg + 72, this.len],
+                ["kite", this.x0, this.y0, this.deg - 72, this.len],
+                ["kite", this.x2 - (this.len * Math.cos(degToRad(this.deg - 144))), this.y2 - (this.len * Math.sin(degToRad(this.deg - 144))), this.deg - 144, this.len],
+                ["kite", this.x2 - (this.len * Math.cos(degToRad(this.deg + 144))), this.y2 - (this.len * Math.sin(degToRad(this.deg + 144))), this.deg + 144, this.len]
             ]
             
-        } else if (shape == "kite") {
+            
+        } else if (this.shape == "dart") {
 
-            this.x1 = x + (len * Math.cos(degToRad(angle)));
-            this.y1 = y + (len * Math.sin(degToRad(angle)));
-            this.x2 = this.x1 - (len * Math.sin(degToRad(54 + deg)));
-            this.y2 = this.y1 + (len * Math.cos(degToRad(54 + deg)));
-            this.x3 = this.x2 + (shortLen * Math.sin(degToRad(18 + deg)));
-            this.y3 = this.y2 - (shortLen * Math.cos(degToRad(18 + deg)));
+            this.x1 = this.x0 + (this.len * Math.cos(degToRad(angle)));
+            this.y1 = this.y0 + (this.len * Math.sin(degToRad(angle)));
+            this.x2 = this.x1 - (this.len * Math.sin(degToRad(54 + this.deg)));
+            this.y2 = this.y1 + (this.len * Math.cos(degToRad(54 + this.deg)));
+            this.x3 = this.x2 + (shortLen * Math.sin(degToRad(18 + this.deg)));
+            this.y3 = this.y2 - (shortLen * Math.cos(degToRad(18 + this.deg)));
+            
+            //canvas.fillRect(this.x0-3, this.y0-3, 6,6);
             
             // Potential neighbors that fit the tile setting rules.
             this.neighbors = [
-                ["dart", x, y, deg, len],
-                ["dart", this.x2, this.y2, deg, len],
-                ["dart", this.x3 - len, this.y3, deg - 36, len],
-                ["dart", this.x3 - len, this.y3, deg + 36, len],
-                ["kite", this.x2, this.y2, deg - 72, len],
-                ["kite", this.x1 + (len * Math.cos(degToRad(deg + 72))), this.y1 + (len * Math.sin(degToRad(deg - 72))), deg + 72, len]
+                ["kite", this.x0, this.y0, this.deg, this.len],
+                ["kite", this.x2, this.y2, this.deg, this.len],
+                ["kite", this.x3 + (this.len * Math.cos(degToRad(this.deg - 180))), this.y3 + (this.len * Math.sin(degToRad(this.deg + 180))), this.deg - 36, this.len],
+                ["kite", this.x3 + (this.len * Math.cos(degToRad(this.deg - 180))), this.y3 + (this.len * Math.sin(degToRad(this.deg + 180))), this.deg + 36, this.len],
+                ["dart", this.x2, this.y2, this.deg - 72, this.len],
+                ["dart", this.x1 + (this.len * Math.cos(degToRad(this.deg - 72))), this.y1 + (this.len * Math.sin(degToRad(this.deg - 72))), this.deg + 72, this.len]
             ]
         }
         
@@ -117,6 +130,31 @@
     
     function counterClockwise (p1, p2, p3) {
         return (p3[1] - p1[1]) * (p2[0] - p1[0]) > (p2[1] - p1[1]) * (p2[0] - p1[0]);
+    }
+    
+    
+    // Takes an array of arrays, compares them all to each other,
+    //  returns true if any of the sub-arrays is the same as
+    //  any other sub-array.
+    function anyArraysSame (array) {
+        
+        var same = false;
+        
+        findSameVariables:
+        for (var i in array) {
+            var testVal = array[i];
+            
+            for (var j in array) {
+                
+                if (i != j) {
+                    same = (JSON.stringify(testVal) == JSON.stringify(array[j]));
+                    if (same) {break findSameVariables};
+                }
+                
+            }
+        }
+        
+        return same;
     }
     
     function tileOverlap(tile0, tile1) {
@@ -140,14 +178,17 @@
                 var p3 = [tile1[pointsx[l]], tile1[pointsy[l]]];
                 var p4 = [tile1[pointsx[l+1]], tile1[pointsy[l+1]]];
                 
-                // Determine if the lines intersect by testing spin direction between points
-                collision = (counterClockwise(p1, p3, p4) != counterClockwise(p2, p3, p4)) && 
-                    (counterClockwise(p1, p2, p3) != counterClockwise(p1, p2, p4));
+                // Determine if the lines intersect by testing spin direction between points,
+                //  but only if none of the lines terminate at the same location; in that case
+                //  there is definitely not a collision.
+                if (!anyArraysSame([p1, p2, p3, p4])) {
+
+                    collision = ((counterClockwise(p1, p3, p4) != counterClockwise(p2, p3, p4)) && 
+                        (counterClockwise(p1, p2, p3) != counterClockwise(p1, p2, p4)));
+
+                }
                 
-                console.log(k+l);
-                console.log("[" + p1 + "; " + p2 + "] and [" + p3 + "; " + p4 + "]");
-                
-                if (collision == true) {break findLineIntersections};
+                if (collision) {break findLineIntersections};
             }
         }
         
@@ -159,7 +200,7 @@
     //////
     
     function drawShape(tile, fillCol, strokeCol) {
-        // Template for drawing kites & darts.  Specify the x,y coords of the endpoint
+        // Template for drawing darts & kites.  Specify the x,y coords of the endpoint
         //  and the rotation; optionally the length of a side and fill & stroke color.
         
         x     = tile.x0;
@@ -195,12 +236,12 @@
         // len = z(1 + PHI)
         // 
         // Solving for x will make calculating lengths a lot easier (especially for the radius of the arcs)
-        // The variable z is the radius of the 144 degree arc for the dart, and the 216 degree arc for the kite
+        // The variable z is the radius of the 144 degree arc for the kite, and the 216 degree arc for the dart
         // Basically, sub for the radii of length 1 in the diagrams here: http://math.uchicago.edu/~mann/penrose.pdf
         // Therefore:
         z = 1 / ((1 + PHI) / len)
         
-        if (shape == "dart") {
+        if (shape == "kite") {
             canvas.beginPath();
             canvas.strokeStyle = "yellow";
             canvas.arc(tile.x0, tile.y0, z * PHI, degToRad(deg - 36), degToRad(deg + 36));
@@ -213,7 +254,7 @@
             
         }
         
-        if (shape == "kite") {
+        if (shape == "dart") {
             canvas.beginPath();
             canvas.strokeStyle = "purple";
             canvas.arc(tile.x3, tile.y3, z / PHI, degToRad(deg - 108), degToRad(deg + 108));
@@ -231,28 +272,72 @@
     // Draw the tileset
     //////
     
-    theHeight = startY - (2 * (len * Math.sin(degToRad(36))))
+    theHeight = startY - (2 * (len * Math.sin(degToRad(36))));
     
-    var t1 = new Tile("kite", x = startX, y = startY, deg = 0,  len = len);
-    
-    var n1 = t1.neighbors[4];
-    var n2 = t1.neighbors[5];
-    //var n3 = t1.neighbors[7];
-    //var n4 = t1.neighbors[3];
-    
-    var t2 = new Tile(n1[0], n1[1], n1[2], n1[3], n1[4]);
-    var t3 = new Tile(n2[0], n2[1], n2[2], n2[3], n2[4]);
-    //var t4 = new Tile(n3[0], n3[1], n3[2], n3[3], n3[4]);
-    //var t5 = new Tile(n4[0], n4[1], n4[2], n4[3], n4[4]);
+    // First tile, to get things started
+    var t1 = new Tile(["dart", startX, startY, 154,  len]);
     
     drawShape(t1, fillCol = "lightgray");
-    drawShape(t2, fillCol = "lightgray");
-    drawShape(t3, fillCol = "lightgray");
-    //drawShape(t4, fillCol = "lightgray");
-    //drawShape(t5, fillCol = "lightgray");
+    if (debug) {
+        var colors = ["cyan", "purple", "blue", "wheat", "orange", "yellow", "pink", "teal"];
+        for (var i in t1.neighbors) {
+            
+            drawShape(new Tile(t1.neighbors[i]), colors[i]);
+        }
+        exit;
+    }
     
-    //drawShape("dart", x = startX, y = startY, deg = angles[2], len = len, fillCol = "lightgray");
-    //drawShape("kite", x = startX, y = theHeight, deg = angles[2],  len = len, fillCol = "lightgray");
+    // Start randomly adding (non-colliding) tiles, up to 20, to the canvas
+    var drawnTiles = [t1];
+    
+    var numberOfTiles = 0;
+    
+
+    
+    function addNewTile() {
+        var currentTile  = drawnTiles[Math.floor(Math.random() * drawnTiles.length)];
+        var neighbor     = Math.floor(Math.random() * currentTile.neighbors.length);
+        var possibleTile = new Tile(currentTile.neighbors[neighbor]);
+        
+        if (debug) {
+            console.log("currentTile, neighbor, possibleTile"); 
+            console.log(currentTile, neighbor, possibleTile); 
+        }
+        
+        var overlap = false;
+        
+        for (var j in drawnTiles) {
+            if (tileOverlap(drawnTiles[j], possibleTile)) {
+                overlap = true;
+                
+                if (debug) {
+                    console.log("Overlap detected!");
+                    console.log("drawnTiles[j], possibleTile, j");
+                    console.log(drawnTiles[j], possibleTile, j);
+                    drawShape(possibleTile, "red");
+                    clearInterval(makingTiles);
+                }
+                
+            };
+        };
+        
+        if (overlap == false) {
+            drawnTiles.push(possibleTile);
+            drawShape(possibleTile, fillCol = "lightgray");
+            
+            numberOfTiles = numberOfTiles + 1;
+        };
+    };
+    
+    var makingTiles = setInterval(addNewTile, 2000);
+
+    
+    // Some samples of how to create/draw tiles from an existing tile
+    //var n1 = t1.neighbors[4];
+    //var t2 = new Tile(n1);
+    //drawShape(t2, fillCol = "lightgray");
+    //drawShape("kite", x = startX, y = startY, deg = angles[2], len = len, fillCol = "lightgray");
+
     
 
   
