@@ -52,11 +52,12 @@
         this.startTiling = function() {
 
             var firstTile = new Tile({
-                x0: _settings.startX,
+                x0: 400,
                 y0: _settings.startY,
-                shape: 'dart'
+                shape: 'kite',
+                rotation: 0
             });
-            // firstTile.draw(_canvas);
+            firstTile.draw(_canvas);
 
             // tiles.push(firstTile);
             var index;
@@ -72,7 +73,9 @@
             var secondTile = new Tile({
                 x0: _settings.startX,
                 y0: _settings.startY,
-                shape: 'kite'
+                shape: 'kite',
+                rotation: 210,
+                colors: { fill: '#000' }
             });
             secondTile.draw(_canvas);
             for (var i in secondTile.points) {
@@ -168,19 +171,20 @@
             this.length   = _settings.length;
 
             this.shortLen = (this.length / Geometry.phi);
-            this.angle     = this.rotation + 36;
-            this.antiAngle = this.rotation - 36;
 
             if (this.shape == "kite") {
                 // B
-                this.x1 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.antiAngle)));
-                this.y1 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.antiAngle)));
+                this.x1 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.rotation - 36)));
+                this.y1 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.rotation - 36)));
                 // C
-                this.x2 = this.x1 + (this.shortLen * Math.sin(Geometry.degToRad(18 + this.rotation)));
-                this.y2 = this.y1 + (this.shortLen * Math.cos(Geometry.degToRad(18 + this.rotation)));
+                this.x2 = this.x1 + (this.shortLen * Math.sin(Geometry.degToRad(18 - this.rotation)));
+                this.y2 = this.y1 + (this.shortLen * Math.cos(Geometry.degToRad(18 - this.rotation)));
                 // D
-                this.x3 = this.x2 + (this.shortLen * Math.sin(Geometry.degToRad(this.rotation - 18)));
-                this.y3 = this.y2 + (this.shortLen * Math.cos(Geometry.degToRad(this.rotation - 18)));
+                this.x3 = this.x2 - (this.shortLen * Math.sin(Geometry.degToRad(this.rotation + 18)));
+                this.y3 = this.y2 + (this.shortLen * Math.cos(Geometry.degToRad(this.rotation + 18)));
+
+                this.x4 = this.x3 + (this.length * Math.cos(Geometry.degToRad(this.rotation + 216)));
+                this.y4 = this.y3 + (this.length * Math.sin(Geometry.degToRad(this.rotation + 216)));
                 // console.log('B', this.x1, this.y1);
                 // console.log('C', this.x2, this.y2);
                 // console.log('D', this.x3, this.y3);
@@ -188,16 +192,21 @@
                 this.pointNames = ['A','B','C','D'];
             } else if (this.shape == "dart") {
                 // E
-                this.x1 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.angle)));
-                this.y1 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.angle)));
+                this.x1 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.rotation + 36)));
+                this.y1 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.rotation + 36)));
                 // F
-                this.x2 = this.x1 - (this.length * Math.sin(Geometry.degToRad(54 + this.rotation)));
-                this.y2 = this.y1 + (this.length * Math.cos(Geometry.degToRad(54 + this.rotation)));
+                this.x2 = this.x1 - (this.length * Math.sin(Geometry.degToRad(this.rotation + 54)));
+                this.y2 = this.y1 + (this.length * Math.cos(Geometry.degToRad(this.rotation + 54)));
                 // G
-                this.x3 = this.x2 + (this.shortLen * Math.sin(Geometry.degToRad(18 + this.rotation)));
-                this.y3 = this.y2 - (this.shortLen * Math.cos(Geometry.degToRad(18 + this.rotation)));
+                this.x3 = this.x2 + (this.shortLen * Math.sin(Geometry.degToRad(this.rotation + 18)));
+                this.y3 = this.y2 - (this.shortLen * Math.cos(Geometry.degToRad(this.rotation + 18)));
+                // H
+                this.x4 = this.x3 + (this.shortLen * Math.sin(Geometry.degToRad(this.rotation - 18)));
+                this.y4 = this.y3 - (this.shortLen * Math.cos(Geometry.degToRad(this.rotation - 18)));
                 // console.log('E', this.x1, this.y1);
-                console.log('F', this.x2, this.y2);
+                // console.log('F', this.x2, this.y2);
+                // console.log('G', this.x3, this.y3);
+                // console.log('H', this.x4, this.y4);
 
                 this.pointNames = ['H','E','F','G'];
             }
@@ -219,11 +228,23 @@
             canvas.lineTo(this.x3, this.y3);
             canvas.lineTo(this.x0, this.y0);
             
+            
             canvas.closePath();
             canvas.fillStyle = _settings.colors.fill;
             canvas.fill();
             canvas.strokeStyle = _settings.colors.stroke;
             canvas.stroke();
+
+            canvas.fillStyle = "#ff0000";
+            canvas.fillRect(this.x4-2,this.y4-2,4,4);
+            // canvas.fillStyle = "#0026ff";
+            // canvas.fillRect(this.x0-2,this.y0-2,4,4);
+            canvas.fillStyle = "#b200ff";
+            canvas.fillRect(this.x1-2,this.y1-2,4,4);
+            canvas.fillStyle = "#ff006e";
+            canvas.fillRect(this.x2-2,this.y2-2,4,4);
+            canvas.fillStyle = "#ff6a00";
+            canvas.fillRect(this.x3-2,this.y3-2,4,4);
             
             // Draw the arcs
             
