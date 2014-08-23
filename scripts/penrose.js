@@ -56,7 +56,7 @@
                 y0: _settings.startY,
                 shape: 'dart'
             });
-            firstTile.draw(_canvas);
+            // firstTile.draw(_canvas);
 
             // tiles.push(firstTile);
             var index;
@@ -160,6 +160,9 @@
             // A / H
             this.x0       = _settings.x0;
             this.y0       = _settings.y0;
+            
+            this.x01 = this.x0 + 100;
+            this.y01 = this.y0;
             this.shape    = _settings.shape;
             this.rotation = _settings.rotation;
             this.length   = _settings.length;
@@ -173,11 +176,11 @@
                 this.x1 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.antiAngle)));
                 this.y1 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.antiAngle)));
                 // C
-                this.x2 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.rotation)));
-                this.y2 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.rotation)));
+                this.x2 = this.x1 + (this.shortLen * Math.sin(Geometry.degToRad(18 + this.rotation)));
+                this.y2 = this.y1 + (this.shortLen * Math.cos(Geometry.degToRad(18 + this.rotation)));
                 // D
-                this.x3 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.angle)));
-                this.y3 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.angle)));
+                this.x3 = this.x2 + (this.shortLen * Math.sin(Geometry.degToRad(this.rotation - 18)));
+                this.y3 = this.y2 + (this.shortLen * Math.cos(Geometry.degToRad(this.rotation - 18)));
                 // console.log('B', this.x1, this.y1);
                 // console.log('C', this.x2, this.y2);
                 // console.log('D', this.x3, this.y3);
