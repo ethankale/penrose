@@ -50,12 +50,56 @@
         };
 
         this.startTiling = function() {
-
+            var tile1, tile2, tile3, tile4, tile5;
+            tile1 = new Tile({
+                x0: 253,
+                y0: 207,
+                shape: 'dart',
+                rotation: 135,
+                initialVertex: 'E',
+            });
+            tile2 = new Tile({
+                x0: 253,
+                y0: 207,
+                shape: 'kite',
+                rotation: 135,
+                initialVertex: 'D',
+            });
+            tile3 = new Tile({
+                x0: 253,
+                y0: 207,
+                shape: 'kite',
+                rotation: 351,
+                initialVertex: 'B',
+            });
+            tile4 = new Tile({
+                x0: 253,
+                y0: 207,
+                shape: 'kite',
+                rotation: 279,
+                initialVertex: 'D',
+            });
+            tile5 = new Tile({
+                x0: 253,
+                y0: 207,
+                shape: 'kite',
+                rotation: 135,
+                initialVertex: 'B',
+            });
+            tile1.draw(_canvas);
+            tile2.draw(_canvas);
+            tile3.draw(_canvas);
+            tile4.draw(_canvas);
+            tile5.draw(_canvas);
+            
+            
+/*
             var firstTile = new Tile({
                 x0: 400,
                 y0: _settings.startY,
-                shape: 'kite',
-                rotation: 0
+                shape: 'dart',
+                rotation: 0,
+                initialVertex: 'E',
             });
             firstTile.draw(_canvas);
 
@@ -74,8 +118,8 @@
                 x0: _settings.startX,
                 y0: _settings.startY,
                 shape: 'kite',
-                rotation: 210,
-                colors: { fill: '#000' }
+                rotation: 0,
+                initialVertex: 'D'
             });
             secondTile.draw(_canvas);
             for (var i in secondTile.points) {
@@ -88,7 +132,7 @@
             }
             
             console.log(vertices);
-
+*/
             // _makingTiles = setInterval(addTile, 1000);
             
         }
@@ -158,93 +202,131 @@
                     _settings.colors.fill = '#E0E0E0';
                 }
             }
-            console.log('Tile settings');
-            console.log(_settings);
+            if (!options.initialVertex) {
+                if (_settings.shape == 'kite') {
+                    _settings.initialVertex = 'A';
+                } else {
+                    _settings.initialVertex = 'H';
+                }
+            }
+console.log('Tile settings');
+console.log(_settings);
             // A / H
             this.x0       = _settings.x0;
             this.y0       = _settings.y0;
-            
-            this.x01 = this.x0 + 100;
-            this.y01 = this.y0;
+
             this.shape    = _settings.shape;
             this.rotation = _settings.rotation;
             this.length   = _settings.length;
-
             this.shortLen = (this.length / Geometry.phi);
 
-            if (this.shape == "kite") {
-                // B
-                this.x1 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.rotation - 36)));
-                this.y1 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.rotation - 36)));
-                // C
-                this.x2 = this.x1 + (this.shortLen * Math.sin(Geometry.degToRad(18 - this.rotation)));
-                this.y2 = this.y1 + (this.shortLen * Math.cos(Geometry.degToRad(18 - this.rotation)));
-                // D
-                this.x3 = this.x2 - (this.shortLen * Math.sin(Geometry.degToRad(this.rotation + 18)));
-                this.y3 = this.y2 + (this.shortLen * Math.cos(Geometry.degToRad(this.rotation + 18)));
-
-                this.x4 = this.x3 + (this.length * Math.cos(Geometry.degToRad(this.rotation + 216)));
-                this.y4 = this.y3 + (this.length * Math.sin(Geometry.degToRad(this.rotation + 216)));
-                // console.log('B', this.x1, this.y1);
-                // console.log('C', this.x2, this.y2);
-                // console.log('D', this.x3, this.y3);
-
-                this.pointNames = ['A','B','C','D'];
-            } else if (this.shape == "dart") {
-                // E
-                this.x1 = this.x0 + (this.length * Math.cos(Geometry.degToRad(this.rotation + 36)));
-                this.y1 = this.y0 + (this.length * Math.sin(Geometry.degToRad(this.rotation + 36)));
-                // F
-                this.x2 = this.x1 - (this.length * Math.sin(Geometry.degToRad(this.rotation + 54)));
-                this.y2 = this.y1 + (this.length * Math.cos(Geometry.degToRad(this.rotation + 54)));
-                // G
-                this.x3 = this.x2 + (this.shortLen * Math.sin(Geometry.degToRad(this.rotation + 18)));
-                this.y3 = this.y2 - (this.shortLen * Math.cos(Geometry.degToRad(this.rotation + 18)));
-                // H
-                this.x4 = this.x3 + (this.shortLen * Math.sin(Geometry.degToRad(this.rotation - 18)));
-                this.y4 = this.y3 - (this.shortLen * Math.cos(Geometry.degToRad(this.rotation - 18)));
-                // console.log('E', this.x1, this.y1);
-                // console.log('F', this.x2, this.y2);
-                // console.log('G', this.x3, this.y3);
-                // console.log('H', this.x4, this.y4);
-
-                this.pointNames = ['H','E','F','G'];
-            }
-
-            this.points = [[this.x0, this.y0], [this.x1, this.y1], [this.x2, this.y2], [this.x3, this.y3]];
+            this.points     = [];
+            this.pointNames = [];
             
+            var nextPointMap = {
+                'kite' : {
+                    'A': {
+                        'next': 'B',
+                        'translation': [
+                            (this.length * Math.cos(Geometry.degToRad(this.rotation + 216))),
+                            (this.length * Math.sin(Geometry.degToRad(this.rotation + 216)))
+                        ]
+                    },
+                    'B': {
+                        'next': 'C',
+                        'translation': [
+                            (this.length * Math.cos(Geometry.degToRad(this.rotation - 36))),
+                            (this.length * Math.sin(Geometry.degToRad(this.rotation - 36)))
+                        ]
+                    },
+                    'C': {
+                        'next': 'D',
+                        'translation': [
+                            (this.shortLen * Math.sin(Geometry.degToRad(18 - this.rotation))),
+                            (this.shortLen * Math.cos(Geometry.degToRad(18 - this.rotation)))
+                        ]
+                    },
+                    'D' : {
+                        'next': 'A',
+                        'translation': [
+                            (this.shortLen * Math.sin(Geometry.degToRad(this.rotation + 18))) * -1,
+                            (this.shortLen * Math.cos(Geometry.degToRad(this.rotation + 18)))
+                        ]
+                    }
+                },
+                'dart' : {
+                    'H': {
+                        'next': 'E',
+                        'translation': [
+                            (this.shortLen * Math.sin(Geometry.degToRad(this.rotation - 18))),
+                            (this.shortLen * Math.cos(Geometry.degToRad(this.rotation - 18))) * -1
+                        ]
+                    },
+                    'E': {
+                        'next': 'F',
+                        'translation': [
+                            (this.length * Math.cos(Geometry.degToRad(this.rotation + 36))),
+                            (this.length * Math.sin(Geometry.degToRad(this.rotation + 36)))
+                        ]
+                    },
+                    'F': {
+                        'next': 'G',
+                        'translation': [
+                            (this.length * Math.sin(Geometry.degToRad(this.rotation + 54))) * -1,
+                            (this.length * Math.cos(Geometry.degToRad(this.rotation + 54)))
+                        ]
+                    },
+                    'G': {
+                        'next': 'H',
+                        'translation': [
+                            (this.shortLen * Math.sin(Geometry.degToRad(this.rotation + 18))),
+                            (this.shortLen * Math.cos(Geometry.degToRad(this.rotation + 18))) * -1
+                        ]
+                    }
+                }
+            };
+
+            var x = _settings.x0;
+            var y = _settings.y0;
+            var currentVertexName = _settings.initialVertex;
+            var currentVertex = nextPointMap[_settings.shape][currentVertexName];
+
+            for (var i = 0; i < 4; i++) {
+                this.pointNames.push(currentVertexName);
+                this.points.push([x, y]);
+                currentVertexName = currentVertex.next;
+                currentVertex = nextPointMap[_settings.shape][currentVertex.next];
+                x = x + currentVertex.translation[0];
+                y = y + currentVertex.translation[1];
+            }
         };
         
         this.draw = function(canvas) {
             // Template for drawing darts & kites.  Specify the x,y coords of the endpoint
             //  and the rotation; optionally the length of a side and fill & stroke color.
-            
-            
-            canvas.moveTo(this.x0, this.y0);
+
+            canvas.moveTo(this.points[0][0], this.points[0][1]);
             canvas.beginPath();
-            
-            canvas.lineTo(this.x1, this.y1);
-            canvas.lineTo(this.x2, this.y2);
-            canvas.lineTo(this.x3, this.y3);
-            canvas.lineTo(this.x0, this.y0);
-            
-            
+
+            canvas.lineTo(this.points[1][0], this.points[1][1]);
+            canvas.lineTo(this.points[2][0], this.points[2][1]);
+            canvas.lineTo(this.points[3][0], this.points[3][1]);
+            canvas.lineTo(this.points[0][0], this.points[0][1]);
+
             canvas.closePath();
             canvas.fillStyle = _settings.colors.fill;
             canvas.fill();
             canvas.strokeStyle = _settings.colors.stroke;
             canvas.stroke();
 
-            canvas.fillStyle = "#ff0000";
-            canvas.fillRect(this.x4-2,this.y4-2,4,4);
-            // canvas.fillStyle = "#0026ff";
-            // canvas.fillRect(this.x0-2,this.y0-2,4,4);
+            canvas.fillStyle = "#0026ff";
+            canvas.fillRect(this.points[0][0]-2,this.points[0][1]-2,4,4);
             canvas.fillStyle = "#b200ff";
-            canvas.fillRect(this.x1-2,this.y1-2,4,4);
+            canvas.fillRect(this.points[1][0]-2,this.points[1][1]-2,4,4);
             canvas.fillStyle = "#ff006e";
-            canvas.fillRect(this.x2-2,this.y2-2,4,4);
+            canvas.fillRect(this.points[2][0]-2,this.points[2][1]-2,4,4);
             canvas.fillStyle = "#ff6a00";
-            canvas.fillRect(this.x3-2,this.y3-2,4,4);
+            canvas.fillRect(this.points[3][0]-2,this.points[3][1]-2,4,4);
             
             // Draw the arcs
             
@@ -257,31 +339,34 @@
             // Basically, sub for the radii of length 1 in the diagrams here: http://math.uchicago.edu/~mann/penrose.pdf
             // Therefore:
             var z = 1 / ((1 + Geometry.phi) / this.length)
-            
+            var arc1, arc2;
             if (this.shape == "kite") {
+                arc1 = this.pointNames.indexOf('A');
+                arc2 = this.pointNames.indexOf('C');
+
                 canvas.beginPath();
                 canvas.strokeStyle = _settings.colors.arc1;
-                canvas.arc(this.x0, this.y0, z * Geometry.phi, Geometry.degToRad(this.rotation - 36), Geometry.degToRad(this.rotation + 36));
+                canvas.arc(this.points[arc1][0], this.points[arc1][1], z * Geometry.phi, Geometry.degToRad(this.rotation - 36), Geometry.degToRad(this.rotation + 36));
                 canvas.stroke();
                 
                 canvas.beginPath();
                 canvas.strokeStyle = _settings.colors.arc2;
-                canvas.arc(this.x2, this.y2, z, Geometry.degToRad(this.rotation + 108), Geometry.degToRad(this.rotation - 108));
+                canvas.arc(this.points[arc2][0], this.points[arc2][1], z, Geometry.degToRad(this.rotation + 108), Geometry.degToRad(this.rotation - 108));
                 canvas.stroke();
                 
-            }
-            
-            if (this.shape == "dart") {
-                canvas.beginPath();
-                canvas.strokeStyle = _settings.colors.arc2;
-                canvas.arc(this.x3, this.y3, z / Geometry.phi, Geometry.degToRad(this.rotation - 108), Geometry.degToRad(this.rotation + 108));
-                canvas.stroke();
-                
+            } else if (this.shape == "dart") {
+                arc1 = this.pointNames.indexOf('E');
+                arc2 = this.pointNames.indexOf('G');
+
                 canvas.beginPath();
                 canvas.strokeStyle = _settings.colors.arc1;
-                canvas.arc(this.x1, this.y1, z, Geometry.degToRad(this.rotation + 144), Geometry.degToRad(this.rotation - 144));
+                canvas.arc(this.points[arc1][0], this.points[arc1][1], z, Geometry.degToRad(this.rotation + 144), Geometry.degToRad(this.rotation - 144));
                 canvas.stroke();
-                
+
+                canvas.beginPath();
+                canvas.strokeStyle = _settings.colors.arc2;
+                canvas.arc(this.points[arc2][0], this.points[arc2][1], z / Geometry.phi, Geometry.degToRad(this.rotation - 108), Geometry.degToRad(this.rotation + 108));
+                canvas.stroke();
             }
         }
 
