@@ -31,7 +31,7 @@
         // Public Properties
         //----------------------------------------------------------------------
         var vertices = {};
-        var tiles = [];
+        this.drawnTiles = [];
 
         //----------------------------------------------------------------------
         // Public Methods
@@ -47,37 +47,40 @@
             // Combine our options and our defaults
             _settings = $.extend(true, {}, _defaults, options);
             _canvas = $(_settings.canvasSelector).get(0).getContext("2d");
+            window.penrose_vertices = [];
+            window.vertexGroupQueue = [];
         };
 
-        this.startTiling = function() {
+        this.startTiling = function() {var tile1, tile2, tile3, tile4, tile5;
+            /*[270, 234, 306]
             var tile1, tile2, tile3, tile4, tile5;
             tile1 = new Tile({
                 x0: 253,
                 y0: 207,
                 shape: 'dart',
-                rotation: 135,
-                initialVertex: 'E',
+                rotation: 134,
+                initialVertex: 'H',
             });
             tile2 = new Tile({
                 x0: 253,
                 y0: 207,
                 shape: 'kite',
-                rotation: 135,
-                initialVertex: 'D',
+                rotation: 98,
+                initialVertex: 'C',
             });
             tile3 = new Tile({
                 x0: 253,
                 y0: 207,
                 shape: 'kite',
-                rotation: 351,
-                initialVertex: 'B',
+                rotation: 242,
+                initialVertex: 'C',
             });
             tile4 = new Tile({
                 x0: 253,
                 y0: 207,
-                shape: 'kite',
-                rotation: 279,
-                initialVertex: 'D',
+                shape: 'dart',
+                rotation: 206,
+                initialVertex: 'F',
             });
             tile5 = new Tile({
                 x0: 253,
@@ -90,63 +93,126 @@
             tile2.draw(_canvas);
             tile3.draw(_canvas);
             tile4.draw(_canvas);
-            tile5.draw(_canvas);
-            
-            
-/*
+            // tile5.draw(_canvas);
+            /*/
             var firstTile = new Tile({
-                x0: 400,
+                x0: _settings.startX,
                 y0: _settings.startY,
                 shape: 'dart',
-                rotation: 0,
-                initialVertex: 'E',
+                rotation: 54,
+                initialVertex: 'F',
             });
             firstTile.draw(_canvas);
-
-            // tiles.push(firstTile);
+            
+            this.drawnTiles.push(firstTile);
             var index;
             var vg;
-            for (var i in firstTile.points) {
-                index = firstTile.points[i][0].toFixed(3) + '_' + firstTile.points[i][1].toFixed(3);
-                if (!vertices[index]) {
-                    vg = new VertexGroup({x: firstTile.points[i][0], y: firstTile.points[i][1]});
-                    vertices[index] = vg;
-                }
-                vertices[index].addVertex(firstTile.pointNames[i], firstTile);
-            }
+            indexVertices(firstTile);
             var secondTile = new Tile({
                 x0: _settings.startX,
                 y0: _settings.startY,
                 shape: 'kite',
-                rotation: 0,
-                initialVertex: 'D'
+                rotation: 90,
+                initialVertex: 'C'
             });
+            this.drawnTiles.push(secondTile);
             secondTile.draw(_canvas);
-            for (var i in secondTile.points) {
-                index = secondTile.points[i][0].toFixed(3) + '_' + secondTile.points[i][1].toFixed(3);
-                if (!vertices[index]) {
-                    vg = new VertexGroup({x: secondTile.points[i][0], y: secondTile.points[i][1]});
-                    vertices[index] = vg;
-                }
-                vertices[index].addVertex(secondTile.pointNames[i], secondTile);
-            }
-            
-            console.log(vertices);
-*/
-            // _makingTiles = setInterval(addTile, 1000);
-            
+            indexVertices(secondTile);
+
+            _makingTiles = setInterval(this.addTile, 2000); //*/
         }
 
-        addTile = function() {
-            console.log('adding a tile');
-            for (var i in vertices) {
-                var vg = vertices[i];
-                if (!vg.isComplete()) {
-                    console.log(vg);
-                    window.vg = vg;
-                    vg.checkComplete();
+        this.addTile = function() {
+
+            var vg;
+            var fillColor;
+            for (var i in window.vertexGroupQueue) {
+                var nextIndex = window.vertexGroupQueue[i];
+                var currentVg = window.penrose_vertices[nextIndex];
+                if (!currentVg.isComplete()) {
+                    // console.log(vg);
+                    // window.vg = vg;
+                    var tiles = currentVg.checkComplete();
+                    var shapeName = '';
+                    // fillColor = '#' + (20 * j).toString(16) + (15 * i).toString(16) + (30 * i).toString(16);
+                    // fillColor = '#'+'0123456789abcdef'.split('').map(function(v,i,a){
+                        // return i>5 ? null : a[Math.floor(Math.random()*16)] }).join('');
+                    var r,g,b;
+                    r = [Math.floor(Math.random()*255)];
+                    g = [Math.floor(Math.random()*255)];
+                    b = [Math.floor(Math.random()*255)];
+                    fillColor = "rgba(" + r + ", " + g + ", " + b + ", 0.3)"
+                    for (var j in tiles) {
+                        if (['A','B','C','D'].indexOf(tiles[j].vertex) != -1) {
+                            shapeName = 'kite';
+                        } else {
+                            shapeName = 'dart';
+                        }
+
+                        var newTile = new Tile({
+                            x0: currentVg.x,
+                            y0: currentVg.y,
+                            shape: shapeName,
+                            rotation: tiles[j].rotation,
+                            initialVertex: tiles[j].vertex,
+                            colors : { fill: fillColor }
+                        });
+                        newTile.draw(_canvas);
+            // window.penrose.drawnTiles.push(newTile);
+                        indexVertices(newTile);
+// console.log('vertices');
+// console.log(window.penrose_vertices);
+                    }
+                    if (tiles.length > 0) {
+                        break;
+                    }
                 }
             }
+        }
+
+        var indexVertices = function(tile) {
+            for (var i in tile.points) {
+                index = tile.points[i][0].toFixed(3) + '_' + tile.points[i][1].toFixed(3);
+                if (!window.penrose_vertices[index]) {
+                    vg = new VertexGroup({x: tile.points[i][0], y: tile.points[i][1], canvas: _canvas});
+                    window.penrose_vertices[index] = vg;
+                }
+                // console.log('adding vertex ' + tile.pointNames[i] + ' to ' + index);
+                window.penrose_vertices[index].addVertex(tile.pointNames[i], tile);
+
+            }
+            window.vertexGroupQueue = [];
+            for (var i in window.penrose_vertices) {
+                window.vertexGroupQueue.push(i);
+            };
+            console.log(window.vertexGroupQueue);
+
+            window.vertexGroupQueue.sort(function(a, b){
+                // move complete vertex groups to the end
+                var aIsComplete, bIsComplete, aHasG, bHasG;
+                aIsComplete = window.penrose_vertices[a].isComplete();
+                bIsComplete = window.penrose_vertices[b].isComplete();
+                aHasG       = window.penrose_vertices[a].vertices.indexOf('G') != -1;
+                bHasG       = window.penrose_vertices[b].vertices.indexOf('G') != -1;
+                if (aIsComplete && !bIsComplete) {
+                    console.log('a is complete (' + a + ')');
+                    return 1;
+                } else if (bIsComplete && !aIsComplete) {
+                    console.log('b is complete (' + b + ')');
+                    return -1;
+                }
+                // G is a special case, it can only be in one group, so it should be handled first
+                if (!aHasG && bHasG) {
+                    console.log('b has G (' + b + ')');
+                    return 1;
+                } else if (!bHasG && aHasG) {
+                    console.log('a has G (' + a + ')');
+                    return -1;
+                }
+                
+                return 0;
+            });
+            console.log(window.vertexGroupQueue);
         }
 
         this.stopTiling = function() {
@@ -209,9 +275,7 @@
                     _settings.initialVertex = 'H';
                 }
             }
-console.log('Tile settings');
-console.log(_settings);
-            // A / H
+
             this.x0       = _settings.x0;
             this.y0       = _settings.y0;
 
@@ -319,15 +383,6 @@ console.log(_settings);
             canvas.strokeStyle = _settings.colors.stroke;
             canvas.stroke();
 
-            canvas.fillStyle = "#0026ff";
-            canvas.fillRect(this.points[0][0]-2,this.points[0][1]-2,4,4);
-            canvas.fillStyle = "#b200ff";
-            canvas.fillRect(this.points[1][0]-2,this.points[1][1]-2,4,4);
-            canvas.fillStyle = "#ff006e";
-            canvas.fillRect(this.points[2][0]-2,this.points[2][1]-2,4,4);
-            canvas.fillStyle = "#ff6a00";
-            canvas.fillRect(this.points[3][0]-2,this.points[3][1]-2,4,4);
-            
             // Draw the arcs
             
             // Calculating lengths is confusing.  Here's a cheat sheet:
@@ -382,7 +437,8 @@ console.log(_settings);
         var _settings = {};
         var _defaults = {
             x: 0,
-            y: 0
+            y: 0,
+            canvas: '',
         };
         var _allGroups = [
             'EEEEE',
@@ -415,7 +471,17 @@ console.log(_settings);
             [234, 198, 342, 306]
         ];
 
-        var vertices = [];
+        var _centers = [
+            [144, 72, 0, 288, 216],
+            [180, 36, 324],
+            [180, 108, 36, 324, 252],
+            [180, 108, 36, 324, 252],
+            [180, 90, 36, 324, 270],
+            [180, 108, 36, 324, 252],
+            [162, 72, 288, 198]
+        ];
+
+        this.vertices = [];
         this.tiles    = [];
 
         var _complete = false;
@@ -443,44 +509,50 @@ console.log(_settings);
          * @return void
          */
         this.addVertex = function(vName, tile) {
-            vertices.push(vName);
+            this.vertices.push(vName);
             this.tiles.push(tile);
         }
 
         this.checkComplete = function() {
+// console.log('vertex group being populated:',this);
+// console.log(this.vertices);
+// console.log(this.tiles);
             /*
              * check 360 degrees around the point and figure out what type of group it is, or at
              * least eliminate impossible groups.
              * draw a circle of a radius much shorter than the size of the polygon
              */
-            var radius = this.tiles[0].length * 0.1;
-            // console.log('radius');
-            // console.log(radius);
-            // console.log( _settings.x, _settings.y);
-            var rotation = 360
+            var radius = this.tiles[0].length * 0.3;
+// console.log('radius');
+// console.log(radius);
+// console.log( _settings.x, _settings.y);
+            var traceRotation = 360
             var pointX, pointY;
             var lastTile;
             var orderedTiles = [];
             var matchString = '';
             var gaps = false;
-            while ( rotation > 0) {
-                var rotationInRadians = Geometry.degToRad(rotation);
+            var firstTileIndex = false;
+            while ( traceRotation > 0) {
+                var rotationInRadians = Geometry.degToRad(traceRotation);
                 pointX = _settings.x + (radius * Math.sin(rotationInRadians));
                 pointY = _settings.y + (radius * Math.cos(rotationInRadians));
-// console.log(pointX, pointY, rotation);
 
                 var found = false;
                 for( var i in this.tiles) {
                     if (Geometry.pointInsidePoly([pointX, pointY], this.tiles[i].points)) {
-// console.log('point is in tile ' + i + ', ' + vertices[i]);
                         if (this.tiles[i] != lastTile) {
                             lastTile = this.tiles[i];
                             if (orderedTiles.indexOf(this.tiles[i]) < 0) {
-                                matchString += vertices[i];
+                                matchString += this.vertices[i];
                                 orderedTiles.push(this.tiles[i]);
                             }
                         }
+                        if (firstTileIndex === false) {
+                            firstTileIndex = i;
+                        }
                         found = true;
+// console.log('found in ' + i);
                     }
                 }
                 if (!found && lastTile != '.') {
@@ -488,32 +560,82 @@ console.log(_settings);
                     matchString += '.+';
                     gaps = true;
                 }
-                rotation -= 35;
+                traceRotation -= 35;
             }
-            console.log(matchString);
-            console.log(orderedTiles);
+            if (matchString.substr(0,2) == '.+') {
+                matchString = matchString.substr(2);
+            }
+            if (matchString.substr(-2) == '.+') {
+                matchString = matchString.substr(0, matchString.length - 2);
+            }
+
             if (!gaps) {
                 _complete = true;
             }
 
             // check which patterns match our possible pattern list
             var pattern = new RegExp(matchString);
-            console.log('pattern', pattern);
+// console.log('pattern', pattern);
             _possibleGroups = [];
             for (var i = 0; i < 7; i++) {
                 if (_matchStrings[i].match(pattern)) {
                     _possibleGroups.push(i);
                 }
             }
-            console.log(_allGroups);
-            console.log(_possibleGroups);
-
+            if (_possibleGroups.length == 0) {
+                console.log(_allGroups);
+                console.log(_possibleGroups);
+                console.log(pattern);
+            }
             // pick a random pattern option
-            var useGroupIndex = _possibleGroups[Math.floor(Math.random()*_possibleGroups.length)];
-            console.log('use ' + _allGroups[useGroupIndex]);
+            var selectedGroup = _possibleGroups[Math.floor(Math.random()*_possibleGroups.length)];
             
             // determine which tiles are missing from the vertex group, and the rotation of the group
+
+// console.log('position, rotation');
+// console.dir(this.tiles);
+            var position =  _matchStrings[selectedGroup].search(matchString);
+// console.log(position);
+// console.log(this.tiles[firstTileIndex].rotation + ' - ' + _rotations[selectedGroup][position]);
+            var rotation = this.tiles[firstTileIndex].rotation - _rotations[selectedGroup][position];
+// console.log(rotation);
+
+            var needsToBeDrawn = [];
+            for (var i = 0; i < _allGroups[selectedGroup].length; i++) {
             
+                centerRotation = _centers[selectedGroup][i] - rotation;
+                rotationInRadians = Geometry.degToRad(centerRotation);
+                pointX = _settings.x + (radius * Math.sin(rotationInRadians));
+                pointY = _settings.y + (radius * Math.cos(rotationInRadians));
+                // draw, for debugging
+                var colors = ["#FF0000", "#FF6A00", "#FFD800", "#00FF21", "#4800FF"];
+                _settings.canvas.fillStyle = colors[i];
+                _settings.canvas.fillRect(pointX-2,pointY-2,4,4);
+                var vertexLetter = _allGroups[selectedGroup][i];
+                var found = false;
+// console.log(vertexLetter, pointX, pointY);
+                // before adding tile to the list to be drawn, make sure it's not already there
+                for (var j in this.vertices) {
+                    if (this.vertices[j] == vertexLetter) {
+// console.log(this.vertices[j]);
+// console.log(this.tiles[j]);
+                        if (Geometry.pointInsidePoly([pointX, pointY], this.tiles[j].points, true)) {
+                            found = true;
+                            console.log('FOUND IT');
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    needsToBeDrawn.push({
+                        'vertex': vertexLetter,
+                        'rotation' : (_rotations[selectedGroup][i] + rotation) % 360
+                    });
+                }
+            }
+            _complete = true;
+            console.log(needsToBeDrawn);
+            return needsToBeDrawn;
         }
 
         this.init(options);
