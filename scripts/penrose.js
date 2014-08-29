@@ -392,7 +392,7 @@
             // Solving for x will make calculating lengths a lot easier (especially for the radius of the arcs)
             // The variable z is the radius of the 144 degree arc for the kite, and the 216 degree arc for the dart
             // Basically, sub for the radii of length 1 in the diagrams here: http://math.uchicago.edu/~mann/penrose.pdf
-            // Therefore:
+            
             var z = 1 / ((1 + Geometry.phi) / this.length)
             var arc1, arc2;
             if (this.shape == "kite") {
@@ -440,6 +440,16 @@
             y: 0,
             canvas: '',
         };
+        
+        /**
+        * There are seven possible groupings of tiles around a vertex (vertex groups).
+        * 
+        * In the Tile object we label the vertices around a 'kite' A-D, and the
+        *  vertices around a 'dart' E-H.  This way each of the seven possible vertex
+        *  groups can be uniquely identified as the sequence of vertices encountered
+        *  in a clockwise rotation around the vertex (starting at any point; 
+        *  hence _matchStrings).
+        */
         var _allGroups = [
             'EEEEE',
             'GBD',
@@ -461,6 +471,15 @@
             'HCCFHCC'
         ];
 
+        /*
+        * Each of the tiles in the seven vertex groups is encountered at a specific
+        *  rotation around the vertex. 
+        *
+        * _rotations captures the degree by which the tile is rotated.
+        *
+        * _centers allows us to detect whether the tile has yet been added to the group.
+        */
+        
         var _rotations = [
             [126, 198, 270, 342, 54],
             [270, 306, 234],
@@ -471,6 +490,7 @@
             [234, 198, 342, 306]
         ];
 
+        
         var _centers = [
             [144, 72, 0, 288, 216],
             [180, 36, 324],
